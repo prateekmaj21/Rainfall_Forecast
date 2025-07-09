@@ -107,4 +107,5 @@ if st.session_state.expanded_day:
 
 # ---------- CALENDAR GRID VIEW ----------
 st.markdown("### 🗓️ Calendar View")
-rows = [df["date"].]()
+rows = [df["date"].unique()[i:i+7] for i in range(0, len(df["date"].unique()), 7)]
+
