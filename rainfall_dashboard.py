@@ -143,7 +143,7 @@ def main():
     </style>""", unsafe_allow_html=True)
 
     with st.sidebar:
-        st.markdown("## 📊 Rain Summary")
+        st.markdown("## 📊 Rain Forecast Summary")
         total_rain_all = df["precipitation"].sum()
         st.metric("Total Rain (14 Days)", f"{total_rain_all:.1f} mm")
 
