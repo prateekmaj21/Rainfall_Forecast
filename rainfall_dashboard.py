@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ---------- CONFIG ----------
 st.set_page_config(page_title="Rain Calendar", layout="wide")
@@ -21,7 +21,6 @@ with st.expander("ℹ️ How to Use This App", expanded=True):
 5. **🌈 Rainfall Intensity Legend** at the bottom helps interpret rainfall levels.
 
 ---
-
 This app is powered by real-time data from [Open-Meteo](https://open-meteo.com/) and updates every 30 minutes.
     """)
 
@@ -70,6 +69,24 @@ def fetch_weather_data(lat, lon):
     )
     response = requests.get(api_url, verify=False)
     return response.json()
+
+# ---------- FETCH PAST 7-DAY RAINFALL ----------
+@st.cache_data(ttl=3600)
+def fetch_past_7_days_rainfall(lat, lon):
+    end_date = datetime.now().date() - timedelta(days=1)
+    start_date = end_date - timedelta(days=6)
+    url = (
+        f"https://archive-api.open-meteo.com/v1/archive?"
+        f"latitude={lat}&longitude={lon}&start_date={start_date}&end_date={end_date}"
+        f"&daily=precipitation_sum&timezone=auto"
+    )
+    response = requests.get(url, verify=False)
+    data = response.json()
+    df_hist = pd.DataFrame({
+        "Date": pd.to_datetime(data["daily"]["time"]),
+        "Rainfall (mm)": data["daily"]["precipitation_sum"]
+    })
+    return df_hist
 
 # ---------- RAIN COLOR SCALE ----------
 def rain_color(val):
@@ -210,6 +227,16 @@ def main():
     </div>
     """
     st.markdown(legend_html, unsafe_allow_html=True)
+
+    # ---------- PAST 7-DAY RAINFALL SECTION ----------
+    st.markdown("## ⏳ Past 7 Days Rainfall")
+    df_past = fetch_past_7_days_rainfall(lat, lon)
+
+    if not df_past.empty:
+        st.dataframe(df_past.style.background_gradient(cmap="Blues", subset=["Rainfall (mm)"]), use_container_width=True)
+        st.markdown(f"📊 Total rainfall in past 7 days: **{df_past['Rainfall (mm)'].sum():.1f} mm**")
+    else:
+        st.warning("Historical data could not be retrieved.")
 
 # ---------- ENTRY POINT ----------
 if __name__ == "__main__":
