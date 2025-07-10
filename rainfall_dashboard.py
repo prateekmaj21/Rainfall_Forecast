@@ -7,6 +7,7 @@ from datetime import datetime
 st.set_page_config(page_title="Rain Calendar", layout="wide")
 st.title("🌧️ 14-Day Rainfall Forecast Calendar")
 
+
 # ---------- USER GUIDE ----------
 with st.expander("ℹ️ How to Use This App", expanded=True):
     st.markdown("""
@@ -58,7 +59,8 @@ default_places = {
 }
 
 # ---------- CITY SELECT ----------
-selected_city = st.selectbox("Choose a city:", sorted(default_places.keys()))
+with st.container():
+    selected_city = st.selectbox("Choose a city:", sorted(default_places.keys()))
 lat, lon = default_places[selected_city]
 city_label = selected_city
 st.markdown(f"### 📍 Forecast for: `{city_label}`")
@@ -96,6 +98,7 @@ def rain_color(val):
 
 # ---------- MAIN ----------
 def main():
+    # ---------- FETCH & PREPARE DATA ----------
     data = fetch_weather_data(lat, lon)
     df = pd.DataFrame({
         "time": data["hourly"]["time"],
@@ -105,19 +108,21 @@ def main():
     df["date"] = df["time"].dt.date
     df["hour"] = df["time"].dt.hour
 
+    # ---------- SESSION STATE ----------
     if "expanded_day" not in st.session_state:
         st.session_state.expanded_day = None
 
-    # ---------- UI STYLES ----------
     st.markdown("""<style>
+        .calendar-box, .hour-box {
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
         .hour-box {
             text-align: center;
             font-size: 14px;
             font-weight: 500;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
         .rain-bar {
             height: 6px;
@@ -126,71 +131,77 @@ def main():
         }
     </style>""", unsafe_allow_html=True)
 
-    # ---------- MAIN LAYOUT WITH RIGHT PANEL ----------
-    col_main, col_side = st.columns([4, 1.5], gap="large")
-
-    with col_side:
+     # ---------- SIDE PANEL SUMMARY ----------
+    with st.sidebar:
         st.markdown("## 📊 Rain Summary")
         total_rain_all = df["precipitation"].sum()
-        st.metric("14-Day Total", f"{total_rain_all:.1f} mm")
+        st.metric("Total Rain (14 Days)", f"{total_rain_all:.1f} mm")
 
         df_daily = df.groupby("date")["precipitation"].sum().reset_index()
         df_daily["week"] = ((df_daily.index) // 7) + 1
         weekly_totals = df_daily.groupby("week")["precipitation"].sum()
 
-        st.markdown("### 📅 Weekly Totals")
-        st.bar_chart(weekly_totals)
+        for i, rain in weekly_totals.items():
+            st.metric(f"Week {i} Total", f"{rain:.1f} mm")
 
-        st.markdown("### 🌦️ Daily Rainfall")
-        st.bar_chart(df_daily.set_index("date")["precipitation"])
-
+        st.markdown("---")
         avg_daily = df_daily["precipitation"].mean()
         wettest_day = df_daily.loc[df_daily["precipitation"].idxmax()]
         driest_day = df_daily.loc[df_daily["precipitation"].idxmin()]
+        
+        st.write("**Daily Avg Rainfall**")
+        st.code(f"{avg_daily:.1f} mm/day")
+        
+        st.write("**Wettest Day**")
+        st.code(f"{wettest_day['date']}: {wettest_day['precipitation']:.1f} mm")
 
-        st.markdown("### ℹ️ Summary")
-        st.write(f"**Average:** {avg_daily:.1f} mm/day")
-        st.write(f"**Wettest:** {wettest_day['date']} ({wettest_day['precipitation']:.1f} mm)")
-        st.write(f"**Driest:** {driest_day['date']} ({driest_day['precipitation']:.1f} mm)")
+        st.write("**Driest Day**")
+        st.code(f"{driest_day['date']}: {driest_day['precipitation']:.1f} mm")
 
-    with col_main:
-        if st.session_state.expanded_day:
-            day = st.session_state.expanded_day
-            st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
+    # ---------- EXPANDED DAY VIEW ----------
+    if st.session_state.expanded_day:
+        day = st.session_state.expanded_day
+        st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
 
-            day_df = df[df["date"] == day]
-            subcols = st.columns(6)
-            for idx, row in day_df.iterrows():
-                with subcols[idx % 6]:
+        day_df = df[df["date"] == day]
+        subcols = st.columns(6)
+        for idx, row in day_df.iterrows():
+            with subcols[idx % 6]:
+                st.markdown(
+                    f"<div class='hour-box' style='background-color:{rain_color(row['precipitation'])};'>"
+                    f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
+                    unsafe_allow_html=True
+                )
+        st.markdown("---")
+        if st.button("⬅️ Back to Calendar View"):
+            st.session_state.expanded_day = None
+            st.stop()
+
+    # ---------- CALENDAR GRID VIEW ----------
+    else:
+        st.markdown("### 🗓️ Calendar View")
+        rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
+
+        for week in rows:
+            cols = st.columns(7)
+            for i, day in enumerate(week):
+                day_df = df[df["date"] == day]
+                total_rain = day_df["precipitation"].sum()
+                color = rain_color(total_rain)
+
+                with cols[i]:
+                    label_date = f"{day.strftime('%d')} {day.strftime('%b')}, {day.year}"
+                    label_rain = f"🌧️ {total_rain:.1f} mm"
+                    btn_label = f"{label_date}\n{label_rain}"
+
+                    if st.button(btn_label, key=f"day_{day}"):
+                        st.session_state.expanded_day = day
+                        st.stop()
+
                     st.markdown(
-                        f"<div class='hour-box' style='background-color:{rain_color(row['precipitation'])};'>"
-                        f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
+                        f"<div class='rain-bar' style='background-color:{color};'></div>",
                         unsafe_allow_html=True
                     )
-            if st.button("⬅️ Back to Calendar View"):
-                st.session_state.expanded_day = None
-                st.stop()
-        else:
-            st.markdown("### 🗓️ Calendar View")
-            rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
-
-            for week in rows:
-                cols = st.columns(7)
-                for i, day in enumerate(week):
-                    day_df = df[df["date"] == day]
-                    total_rain = day_df["precipitation"].sum()
-                    color = rain_color(total_rain)
-
-                    with cols[i]:
-                        label_date = f"{day.strftime('%d')} {day.strftime('%b')}, {day.year}"
-                        label_rain = f"🌧️ {total_rain:.1f} mm"
-                        if st.button(f"{label_date}\n{label_rain}", key=f"day_{day}"):
-                            st.session_state.expanded_day = day
-                            st.stop()
-                        st.markdown(
-                            f"<div class='rain-bar' style='background-color:{color};'></div>",
-                            unsafe_allow_html=True
-                        )
 
     # ---------- LEGEND ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
@@ -205,6 +216,7 @@ def main():
         ("Very Heavy (124.5–244.4 mm)", "#DC143C"),
         ("Extreme (>244.4 mm)", "#8B0000"),
     ]
+
     legend_cols = st.columns(len(legend_items))
     for i, (label, color) in enumerate(legend_items):
         with legend_cols[i]:
@@ -213,6 +225,7 @@ def main():
                 f"<b>{label}</b></div>",
                 unsafe_allow_html=True
             )
+
 
 # ---------- ENTRY POINT ----------
 if __name__ == "__main__":
