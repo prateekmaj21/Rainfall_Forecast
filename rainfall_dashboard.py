@@ -81,17 +81,17 @@ def rain_color(val):
         return "#D3D3D3"  # No Rain
     elif 0 < val <= 0.04:
         return "#ADD8E6"  # Trace Rain
-    elif 0.05 <= val <= 2.4:
+    elif 0.04 < val <= 2.4:
         return "#A0C4FF"  # Very Light
-    elif 2.5 <= val <= 7.5:
+    elif 2.4  < val <= 7.5:
         return "#7FB77E"  # Light
-    elif 7.6 <= val <= 35.5:
+    elif 7.5 < val <= 35.5:
         return "#FFD700"  # Moderate
-    elif 35.6 <= val <= 64.4:
+    elif 35.5 < val <= 64.4:
         return "#FF8C00"  # Rather Heavy
-    elif 64.5 <= val <= 124.4:
+    elif 64.4 < val <= 124.4:
         return "#FF4500"  # Heavy
-    elif 124.5 <= val <= 244.4:
+    elif 124.4< val :
         return "#DC143C"  # Very Heavy
     else:
         return "#8B0000"  # Extremely Heavy
