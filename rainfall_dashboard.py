@@ -200,15 +200,15 @@ def main():
     # ---------- LEGEND ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
     legend_items = [
-        ("No Rain                         ", "#D3D3D3", "black"),
-        ("Trace (0.01–0.04 mm)            ", "#ADD8E6", "black"),
-        ("Very Light (0.1–2.4 mm)         ", "#A0C4FF", "black"),
-        ("Light (2.5–7.5 mm)              ", "#7FB77E", "black"),
-        ("Moderate (7.6–35.5 mm)          ", "#FFD700", "black"),
-        ("Rather Heavy (35.6–64.4 mm)     ", "#FF8C00", "black"),
-        ("Heavy (64.5–124.4 mm)", "#FF4500", "black"),
-        ("Very Heavy (124.5–244.4 mm)     ", "#DC143C", "black"),
-        ("Extreme (>244.4 mm)             ", "#8B0000", "white"),
+        ("No Rain                         .", "#D3D3D3", "black"),
+        ("Trace (0.01–0.04 mm)            .", "#ADD8E6", "black"),
+        ("Very Light (0.1–2.4 mm)         .", "#A0C4FF", "black"),
+        ("Light (2.5–7.5 mm)              .", "#7FB77E", "black"),
+        ("Moderate (7.6–35.5 mm)          .", "#FFD700", "black"),
+        ("Rather Heavy (35.6–64.4 mm)     .", "#FF8C00", "black"),
+        ("Heavy (64.5–124.4 mm)", "#FF4500.", "black"),
+        ("Very Heavy (124.5–244.4 mm)     .", "#DC143C", "black"),
+        ("Extreme (>244.4 mm)             .", "#8B0000", "white"),
     ]
 
     legend_cols = st.columns(len(legend_items))
