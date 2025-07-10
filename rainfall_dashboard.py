@@ -112,68 +112,90 @@ def main():
     if "expanded_day" not in st.session_state:
         st.session_state.expanded_day = None
 
+    st.markdown("""<style>
+        .calendar-box, .hour-box {
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .hour-box {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .rain-bar {
+            height: 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+    </style>""", unsafe_allow_html=True)
+
     # ---------- EXPANDED DAY VIEW ----------
     if st.session_state.expanded_day:
         day = st.session_state.expanded_day
         st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
+
         day_df = df[df["date"] == day]
         subcols = st.columns(6)
         for idx, row in day_df.iterrows():
             with subcols[idx % 6]:
                 st.markdown(
-                    f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:6px; margin-bottom:8px;'>"
+                    f"<div class='hour-box' style='background-color:{rain_color(row['precipitation'])};'>"
                     f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
                     unsafe_allow_html=True
                 )
+        st.markdown("---")
         if st.button("⬅️ Back to Calendar View"):
             st.session_state.expanded_day = None
             st.stop()
 
     # ---------- CALENDAR GRID VIEW ----------
-    st.markdown("### 🗓️ Calendar View")
-    rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
+    else:
+        st.markdown("### 🗓️ Calendar View")
+        rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
 
-    for week in rows:
-        cols = st.columns(7)
-        for i, day in enumerate(week):
-            day_df = df[df["date"] == day]
-            total_rain = day_df["precipitation"].sum()
-            color = rain_color(total_rain)
+        for week in rows:
+            cols = st.columns(7)
+            for i, day in enumerate(week):
+                day_df = df[df["date"] == day]
+                total_rain = day_df["precipitation"].sum()
+                color = rain_color(total_rain)
 
-            with cols[i]:
-                label_date = f"{day.strftime('%d')} {day.strftime('%B')}, {day.year}"
-                label_rain = f"Total🌧️{total_rain:.1f} mm"
-                label = f"{label_date}\n{label_rain}"
+                with cols[i]:
+                    label_date = f"{day.strftime('%d')} {day.strftime('%b')}, {day.year}"
+                    label_rain = f"🌧️ {total_rain:.1f} mm"
+                    btn_label = f"{label_date}\n{label_rain}"
 
-                if st.button(label, key=f"day_{day}"):
-                    st.session_state.expanded_day = day
-                    st.stop()
+                    if st.button(btn_label, key=f"day_{day}"):
+                        st.session_state.expanded_day = day
+                        st.stop()
 
-                st.markdown(
-                    f"<div style='background-color:{color}; height:6px; border-radius:4px; margin-top:4px;'></div>",
-                    unsafe_allow_html=True
-                )
+                    st.markdown(
+                        f"<div class='rain-bar' style='background-color:{color};'></div>",
+                        unsafe_allow_html=True
+                    )
 
     # ---------- LEGEND ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
     legend_items = [
         ("No Rain", "#D3D3D3"),
-        ("Trace Rain (0.01–0.04 mm)", "#ADD8E6"),
+        ("Trace (0.01–0.04 mm)", "#ADD8E6"),
         ("Very Light (0.1–2.4 mm)", "#A0C4FF"),
         ("Light (2.5–7.5 mm)", "#7FB77E"),
         ("Moderate (7.6–35.5 mm)", "#FFD700"),
         ("Rather Heavy (35.6–64.4 mm)", "#FF8C00"),
         ("Heavy (64.5–124.4 mm)", "#FF4500"),
         ("Very Heavy (124.5–244.4 mm)", "#DC143C"),
-        ("Extremely Heavy (>244.4 mm)", "#8B0000"),
+        ("Extreme (>244.4 mm)", "#8B0000"),
     ]
 
     legend_cols = st.columns(len(legend_items))
     for i, (label, color) in enumerate(legend_items):
         with legend_cols[i]:
             st.markdown(
-                f"<div style='background-color:{color}; padding:8px; border-radius:6px; text-align:center;'>"
-                f"<b style='font-size:12px'>{label}</b></div>",
+                f"<div style='background-color:{color}; padding:8px; border-radius:6px; text-align:center; font-size:12px;'>"
+                f"<b>{label}</b></div>",
                 unsafe_allow_html=True
             )
 
