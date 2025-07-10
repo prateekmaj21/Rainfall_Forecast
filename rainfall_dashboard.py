@@ -112,7 +112,7 @@ def main():
             with subcols[idx % 6]:
                 st.markdown(
                     f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center;'>"
-                    f"{row['time'].strftime('%H:%M')}<br>🌧️ {row['precipitation']:.1f} mm</div>",
+                    f"{row['time'].strftime('%H:%M')}🌧️ {row['precipitation']:.1f} mm</div>",
                     unsafe_allow_html=True
                 )
         if st.button("⬅️ Back to Calendar View"):
@@ -131,7 +131,7 @@ def main():
                 color = rain_color(total_rain)
 
                 with cols[i]:
-                    label = f"{day.strftime('%d')}<br>{day.strftime('%b')}<br>{total_rain:.1f} mm"
+                    label = f"{day.strftime('%d')}{day.strftime('%b')}{total_rain:.1f} mm"
                     clicked = st.button(label, key=f"day_{day}")
                     if clicked:
                         st.session_state.expanded_day = pd.to_datetime(day)
