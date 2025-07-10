@@ -7,6 +7,28 @@ from datetime import datetime
 st.set_page_config(page_title="Rain Calendar", layout="wide")
 st.title("🌧️ 14-Day Rainfall Forecast Calendar")
 
+
+# ---------- USER GUIDE ----------
+with st.expander("ℹ️ How to Use This App", expanded=True):
+    st.markdown("""
+**Welcome to the Rainfall Forecast Calendar!** Here's how you can explore the 14-day rainfall forecast:
+
+1. **📍 Select a City** from the dropdown menu — choose from over 20 locations across India.
+2. **📅 View Calendar**: The forecast is shown in a weekly grid.
+   - Each block shows the **total rainfall** for the day.
+   - Colored bars below each date indicate intensity (legend at bottom).
+3. **🔍 Click Any Day** to view the **hourly rainfall** breakdown with time and intensity.
+4. **⬅️ Go Back**: Use the "Back to Calendar View" button to return to the full calendar.
+5. **🌈 Rainfall Intensity Legend** at the bottom helps interpret rainfall levels.
+   - From *No Rain* to *Extremely Heavy Rain*, color-coded from grey to dark red.
+
+---
+
+This app is powered by real-time data from [Open-Meteo](https://open-meteo.com/) and updates every 30 minutes.
+
+Enjoy planning your week ahead! ☔
+    """)
+
 # ---------- PREDEFINED LOCATIONS ----------
 default_places = {
     "Vadodara": (22.3855, 73.1124),
