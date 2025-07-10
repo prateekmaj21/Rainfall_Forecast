@@ -248,7 +248,7 @@ def main():
         with col2:
             st.info(f"🌤️ Driest: {min_day['Date'].date()} — {min_day['Rainfall (mm)']:.1f} mm")
 
-        chart = alt.Chart(df_past).mark_bar(size=35, cornerRadiusTop=4).encode(
+        chart = alt.Chart(df_past).mark_bar(size=35).encode(
             x=alt.X("Date:T", title="Date"),
             y=alt.Y("Rainfall (mm):Q", title="Rainfall (mm)"),
             tooltip=["Date:T", "Rainfall (mm):Q"]
