@@ -131,6 +131,33 @@ def main():
         }
     </style>""", unsafe_allow_html=True)
 
+     # ---------- SIDE PANEL SUMMARY ----------
+    with st.sidebar:
+        st.markdown("## 📊 Rain Summary")
+        total_rain_all = df["precipitation"].sum()
+        st.metric("Total Rain (14 Days)", f"{total_rain_all:.1f} mm")
+
+        df_daily = df.groupby("date")["precipitation"].sum().reset_index()
+        df_daily["week"] = ((df_daily.index) // 7) + 1
+        weekly_totals = df_daily.groupby("week")["precipitation"].sum()
+
+        for i, rain in weekly_totals.items():
+            st.metric(f"Week {i} Total", f"{rain:.1f} mm")
+
+        st.markdown("---")
+        avg_daily = df_daily["precipitation"].mean()
+        wettest_day = df_daily.loc[df_daily["precipitation"].idxmax()]
+        driest_day = df_daily.loc[df_daily["precipitation"].idxmin()]
+        
+        st.write("**Daily Avg Rainfall**")
+        st.code(f"{avg_daily:.1f} mm/day")
+        
+        st.write("**Wettest Day**")
+        st.code(f"{wettest_day['date']}: {wettest_day['precipitation']:.1f} mm")
+
+        st.write("**Driest Day**")
+        st.code(f"{driest_day['date']}: {driest_day['precipitation']:.1f} mm")
+
     # ---------- EXPANDED DAY VIEW ----------
     if st.session_state.expanded_day:
         day = st.session_state.expanded_day
