@@ -7,7 +7,6 @@ from datetime import datetime
 st.set_page_config(page_title="Rain Calendar", layout="wide")
 st.title("🌧️ 14-Day Rainfall Forecast Calendar")
 
-
 # ---------- USER GUIDE ----------
 with st.expander("ℹ️ How to Use This App", expanded=True):
     st.markdown("""
@@ -83,7 +82,7 @@ def rain_color(val):
         return "#ADD8E6"  # Trace Rain
     elif 0.04 < val <= 2.4:
         return "#A0C4FF"  # Very Light
-    elif 2.4  < val <= 7.5:
+    elif 2.4 < val <= 7.5:
         return "#7FB77E"  # Light
     elif 7.5 < val <= 35.5:
         return "#FFD700"  # Moderate
@@ -91,14 +90,13 @@ def rain_color(val):
         return "#FF8C00"  # Rather Heavy
     elif 64.4 < val <= 124.4:
         return "#FF4500"  # Heavy
-    elif 124.4< val :
+    elif 124.4 < val <= 244.4:
         return "#DC143C"  # Very Heavy
     else:
-        return "#8B0000"  # Extremely Heavy
+        return "#8B0000"  # Extreme
 
 # ---------- MAIN ----------
 def main():
-    # ---------- FETCH & PREPARE DATA ----------
     data = fetch_weather_data(lat, lon)
     df = pd.DataFrame({
         "time": data["hourly"]["time"],
@@ -108,7 +106,6 @@ def main():
     df["date"] = df["time"].dt.date
     df["hour"] = df["time"].dt.hour
 
-    # ---------- SESSION STATE ----------
     if "expanded_day" not in st.session_state:
         st.session_state.expanded_day = None
 
@@ -131,7 +128,6 @@ def main():
         }
     </style>""", unsafe_allow_html=True)
 
-     # ---------- SIDE PANEL SUMMARY ----------
     with st.sidebar:
         st.markdown("## 📊 Rain Summary")
         total_rain_all = df["precipitation"].sum()
@@ -148,17 +144,16 @@ def main():
         avg_daily = df_daily["precipitation"].mean()
         wettest_day = df_daily.loc[df_daily["precipitation"].idxmax()]
         driest_day = df_daily.loc[df_daily["precipitation"].idxmin()]
-        
+
         st.write("**Daily Avg Rainfall**")
         st.code(f"{avg_daily:.1f} mm/day")
-        
+
         st.write("**Wettest Day**")
         st.code(f"{wettest_day['date']}: {wettest_day['precipitation']:.1f} mm")
 
         st.write("**Driest Day**")
         st.code(f"{driest_day['date']}: {driest_day['precipitation']:.1f} mm")
 
-    # ---------- EXPANDED DAY VIEW ----------
     if st.session_state.expanded_day:
         day = st.session_state.expanded_day
         st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
@@ -177,7 +172,6 @@ def main():
             st.session_state.expanded_day = None
             st.stop()
 
-    # ---------- CALENDAR GRID VIEW ----------
     else:
         st.markdown("### 🗓️ Calendar View")
         rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
@@ -206,26 +200,40 @@ def main():
     # ---------- LEGEND ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
     legend_items = [
-        ("No Rain", "#D3D3D3"),
-        ("Trace (0.01–0.04 mm)", "#ADD8E6"),
-        ("Very Light (0.1–2.4 mm)", "#A0C4FF"),
-        ("Light (2.5–7.5 mm)", "#7FB77E"),
-        ("Moderate (7.6–35.5 mm)", "#FFD700"),
-        ("Rather Heavy (35.6–64.4 mm)", "#FF8C00"),
-        ("Heavy (64.5–124.4 mm)", "#FF4500"),
-        ("Very Heavy (124.5–244.4 mm)", "#DC143C"),
-        ("Extreme (>244.4 mm)", "#8B0000"),
+        ("No Rain", "#D3D3D3", "black"),
+        ("Trace (0.01–0.04 mm)", "#ADD8E6", "black"),
+        ("Very Light (0.1–2.4 mm)", "#A0C4FF", "black"),
+        ("Light (2.5–7.5 mm)", "#7FB77E", "black"),
+        ("Moderate (7.6–35.5 mm)", "#FFD700", "black"),
+        ("Rather Heavy (35.6–64.4 mm)", "#FF8C00", "black"),
+        ("Heavy (64.5–124.4 mm)", "#FF4500", "black"),
+        ("Very Heavy (124.5–244.4 mm)", "#DC143C", "black"),
+        ("Extreme (>244.4 mm)", "#8B0000", "white"),
     ]
 
     legend_cols = st.columns(len(legend_items))
-    for i, (label, color) in enumerate(legend_items):
+    for i, (label, bg_color, text_color) in enumerate(legend_items):
         with legend_cols[i]:
             st.markdown(
-                f"<div style='background-color:{color}; padding:8px; border-radius:6px; text-align:center; font-size:12px;'>"
-                f"<b>{label}</b></div>",
+                f"""
+                <div style='
+                    background-color:{bg_color};
+                    color:{text_color};
+                    padding:10px;
+                    border-radius:8px;
+                    text-align:center;
+                    font-size:13px;
+                    min-height:48px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-weight:600;
+                '>
+                    {label}
+                </div>
+                """,
                 unsafe_allow_html=True
             )
-
 
 # ---------- ENTRY POINT ----------
 if __name__ == "__main__":
