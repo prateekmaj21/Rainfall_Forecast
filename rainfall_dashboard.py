@@ -131,7 +131,7 @@ def main():
                 color = rain_color(total_rain)
 
                 with cols[i]:
-                    label = f"{day.strftime('%d')}{day.strftime('%b')}{total_rain:.1f} mm"
+                    label = f"{day.strftime('%d')}{day.strftime('%b')} {total_rain:.1f} mm"
                     clicked = st.button(label, key=f"day_{day}")
                     if clicked:
                         st.session_state.expanded_day = pd.to_datetime(day)
