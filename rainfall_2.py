@@ -7,6 +7,28 @@ from datetime import datetime
 st.set_page_config(page_title="Rain Calendar", layout="wide")
 st.title("🌧️ 14-Day Rainfall Forecast Calendar")
 
+
+# ---------- USER GUIDE ----------
+with st.expander("ℹ️ How to Use This App", expanded=True):
+    st.markdown("""
+**Welcome to the Rainfall Forecast Calendar!** Here's how you can explore the 14-day rainfall forecast:
+
+1. **📍 Select a City** from the dropdown menu — choose from over 20 locations across India.
+2. **📅 View Calendar**: The forecast is shown in a weekly grid.
+   - Each block shows the **total rainfall** for the day.
+   - Colored bars below each date indicate intensity (legend at bottom).
+3. **🔍 Click Any Day** to view the **hourly rainfall** breakdown with time and intensity.
+4. **⬅️ Go Back**: Use the "Back to Calendar View" button to return to the full calendar.
+5. **🌈 Rainfall Intensity Legend** at the bottom helps interpret rainfall levels.
+   - From *No Rain* to *Extremely Heavy Rain*, color-coded from grey to dark red.
+
+---
+
+This app is powered by real-time data from [Open-Meteo](https://open-meteo.com/) and updates every 30 minutes.
+
+Enjoy planning your week ahead! ☔
+    """)
+
 # ---------- PREDEFINED LOCATIONS ----------
 default_places = {
     "Vadodara": (22.3855, 73.1124),
@@ -53,59 +75,109 @@ def fetch_weather_data(lat, lon):
     response = requests.get(api_url, verify=False)
     return response.json()
 
-# ---------- PREPARE DATA ----------
-data = fetch_weather_data(lat, lon)
-df = pd.DataFrame({
-    "time": data["hourly"]["time"],
-    "precipitation": data["hourly"]["precipitation"]
-})
-df["time"] = pd.to_datetime(df["time"])
-df["date"] = df["time"].dt.date
-df["hour"] = df["time"].dt.hour
-
 # ---------- RAIN COLOR SCALE ----------
 def rain_color(val):
     if val == 0:
-        return "#D3D3D3"  # No Rain - Light Grey
+        return "#D3D3D3"  # No Rain
     elif 0 < val <= 0.04:
-        return "#ADD8E6"  # Trace Rain - Light Blue
+        return "#ADD8E6"  # Trace Rain
     elif 0.05 <= val <= 2.4:
-        return "#A0C4FF"  # Very Light Rain - Soft Blue
+        return "#A0C4FF"  # Very Light
     elif 2.5 <= val <= 7.5:
-        return "#7FB77E"  # Light Rain - Green
+        return "#7FB77E"  # Light
     elif 7.6 <= val <= 35.5:
-        return "#FFD700"  # Moderate Rain - Yellow
+        return "#FFD700"  # Moderate
     elif 35.6 <= val <= 64.4:
-        return "#FF8C00"  # Rather Heavy - Orange
+        return "#FF8C00"  # Rather Heavy
     elif 64.5 <= val <= 124.4:
-        return "#FF4500"  # Heavy - Orange Red
+        return "#FF4500"  # Heavy
     elif 124.5 <= val <= 244.4:
-        return "#DC143C"  # Very Heavy - Crimson
+        return "#DC143C"  # Very Heavy
     else:
-        return "#8B0000"  # Extremely Heavy - Dark Red
+        return "#8B0000"  # Extremely Heavy
 
-# ---------- STATE MGMT ----------
-if "expanded_day" not in st.session_state:
-    st.session_state.expanded_day = None
+# ---------- MAIN ----------
+def main():
+    # ---------- FETCH & PREPARE DATA ----------
+    data = fetch_weather_data(lat, lon)
+    df = pd.DataFrame({
+        "time": data["hourly"]["time"],
+        "precipitation": data["hourly"]["precipitation"]
+    })
+    df["time"] = pd.to_datetime(df["time"])
+    df["date"] = df["time"].dt.date
+    df["hour"] = df["time"].dt.hour
 
-# ---------- FULL-DAY EXPANDED VIEW ----------
-if st.session_state.expanded_day:
-    day = st.session_state.expanded_day
-    st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
-    day_df = df[df["date"] == day]
-    subcols = st.columns(6)
-    for idx, row in day_df.iterrows():
-        with subcols[idx % 6]:
+    # ---------- SESSION STATE ----------
+    if "expanded_day" not in st.session_state:
+        st.session_state.expanded_day = None
+
+    # ---------- EXPANDED DAY VIEW ----------
+    if st.session_state.expanded_day:
+        day = st.session_state.expanded_day
+        st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
+        day_df = df[df["date"] == day]
+        subcols = st.columns(6)
+        for idx, row in day_df.iterrows():
+            with subcols[idx % 6]:
+                st.markdown(
+                    f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:6px; margin-bottom:8px;'>"
+                    f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
+                    unsafe_allow_html=True
+                )
+        if st.button("⬅️ Back to Calendar View"):
+            st.session_state.expanded_day = None
+            st.stop()
+
+    # ---------- CALENDAR GRID VIEW ----------
+    st.markdown("### 🗓️ Calendar View")
+    rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
+
+    for week in rows:
+        cols = st.columns(7)
+        for i, day in enumerate(week):
+            day_df = df[df["date"] == day]
+            total_rain = day_df["precipitation"].sum()
+            color = rain_color(total_rain)
+
+            with cols[i]:
+                label_date = f"{day.strftime('%d')} {day.strftime('%B')}, {day.year}"
+                label_rain = f"Total🌧️{total_rain:.1f} mm"
+                label = f"{label_date}\n{label_rain}"
+
+                if st.button(label, key=f"day_{day}"):
+                    st.session_state.expanded_day = day
+                    st.stop()
+
+                st.markdown(
+                    f"<div style='background-color:{color}; height:6px; border-radius:4px; margin-top:4px;'></div>",
+                    unsafe_allow_html=True
+                )
+
+    # ---------- LEGEND ----------
+    st.markdown("### 🌈 Rainfall Intensity Legend")
+    legend_items = [
+        ("No Rain", "#D3D3D3"),
+        ("Trace Rain (0.01–0.04 mm)", "#ADD8E6"),
+        ("Very Light (0.1–2.4 mm)", "#A0C4FF"),
+        ("Light (2.5–7.5 mm)", "#7FB77E"),
+        ("Moderate (7.6–35.5 mm)", "#FFD700"),
+        ("Rather Heavy (35.6–64.4 mm)", "#FF8C00"),
+        ("Heavy (64.5–124.4 mm)", "#FF4500"),
+        ("Very Heavy (124.5–244.4 mm)", "#DC143C"),
+        ("Extremely Heavy (>244.4 mm)", "#8B0000"),
+    ]
+
+    legend_cols = st.columns(len(legend_items))
+    for i, (label, color) in enumerate(legend_items):
+        with legend_cols[i]:
             st.markdown(
-                f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:6px; margin-bottom:8px;'>"
-                f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
+                f"<div style='background-color:{color}; padding:8px; border-radius:6px; text-align:center;'>"
+                f"<b style='font-size:12px'>{label}</b></div>",
                 unsafe_allow_html=True
             )
-    if st.button("⬅️ Back to Calendar View"):
-        st.session_state.expanded_day = None
-        st.stop()
 
-# ---------- CALENDAR GRID VIEW ----------
-st.markdown("### 🗓️ Calendar View")
-rows = [df["date"].unique()[i:i+7] for i in range(0, len(df["date"].unique()), 7)]
 
+# ---------- ENTRY POINT ----------
+if __name__ == "__main__":
+    main()
