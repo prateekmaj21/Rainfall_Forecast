@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
-
+import altair as alt
 # ---------- CONFIG ----------
 st.set_page_config(page_title="Rain Calendar", layout="wide")
 st.title("🌧️ 14-Day Rainfall Forecast Calendar")
