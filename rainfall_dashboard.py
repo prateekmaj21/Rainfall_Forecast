@@ -5,31 +5,23 @@ from datetime import datetime
 
 # ---------- CONFIG ----------
 st.set_page_config(page_title="Rain Calendar", layout="wide")
-st.title("🌧️ 14-Day Rainfall Forecast Calendar")
-
+st.markdown("<h1 style='text-align: center;'>🌧️ 14-Day Rainfall Forecast Calendar</h1>", unsafe_allow_html=True)
 
 # ---------- USER GUIDE ----------
 with st.expander("ℹ️ How to Use This App", expanded=True):
     st.markdown("""
-**Welcome to the Rainfall Forecast Calendar!** Here's how you can explore the 14-day rainfall forecast:
+<div style='background-color:#f9f9f9; padding:10px 20px; border-radius:10px;'>
+<b>Welcome!</b> This dashboard helps you monitor upcoming rainfall at your location.
 
-1. **📍 Select a City** from the dropdown menu — choose from over 20 locations across India.
-2. **📅 View Calendar**: The forecast is shown in a weekly grid.
-   - Each block shows the **total rainfall** for the day.
-   - Colored bars below each date indicate intensity (legend at bottom).
-3. **🔍 Click Any Day** to view the **hourly rainfall** breakdown with time and intensity.
-4. **⬅️ Go Back**: Use the "Back to Calendar View" button to return to the full calendar.
-5. **🌈 Rainfall Intensity Legend** at the bottom helps interpret rainfall levels.
-   - From *No Rain* to *Extremely Heavy Rain*, color-coded from grey to dark red.
+1. 📍 <b>Select a City</b> from the dropdown.
+2. 📅 <b>View Weekly Calendar</b> — total rainfall is shown per day.
+3. 🔍 <b>Click on any date</b> to view hourly breakdown.
+4. ⬅️ Use <b>Back</b> button to return to calendar view.
+5. 🌈 <b>Legend below</b> shows how rainfall is categorized.
+</div>
+""", unsafe_allow_html=True)
 
----
-
-This app is powered by real-time data from [Open-Meteo](https://open-meteo.com/) and updates every 30 minutes.
-
-Enjoy planning your week ahead! ☔
-    """)
-
-# ---------- PREDEFINED LOCATIONS ----------
+# ---------- LOCATIONS ----------
 default_places = {
     "Vadodara": (22.3855, 73.1124),
     "Nagpur": (21.16596, 79.37988),
@@ -58,47 +50,49 @@ default_places = {
     "Dhenkanal-2": (20.72582, 85.51291),
 }
 
-# ---------- CITY SELECT ----------
+# ---------- CITY SELECTION UI ----------
 with st.container():
-    selected_city = st.selectbox("Choose a city:", sorted(default_places.keys()))
-lat, lon = default_places[selected_city]
-city_label = selected_city
-st.markdown(f"### 📍 Forecast for: `{city_label}`")
+    st.markdown("#### 📍 Select a City")
+    col1, col2 = st.columns([3, 7])
+    with col1:
+        selected_city = st.selectbox("", sorted(default_places.keys()), label_visibility="collapsed")
+    lat, lon = default_places[selected_city]
+    st.markdown(f"<div style='background-color:#e6f4f1; padding:10px 16px; border-radius:10px;'>"
+                f"<b>City Selected:</b> {selected_city} (Lat: {lat}, Lon: {lon})</div>", unsafe_allow_html=True)
 
-# ---------- FETCH WEATHER ----------
+# ---------- FETCH DATA ----------
 @st.cache_data(ttl=1800)
 def fetch_weather_data(lat, lon):
-    api_url = (
+    url = (
         f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
         f"&hourly=precipitation&forecast_days=14&timezone=auto"
     )
-    response = requests.get(api_url, verify=False)
+    response = requests.get(url, verify=False)
     return response.json()
 
-# ---------- RAIN COLOR SCALE ----------
+# ---------- COLOR SCALE ----------
 def rain_color(val):
     if val == 0:
-        return "#D3D3D3"  # No Rain
+        return "#D3D3D3"
     elif 0 < val <= 0.04:
-        return "#ADD8E6"  # Trace Rain
+        return "#ADD8E6"
     elif 0.05 <= val <= 2.4:
-        return "#A0C4FF"  # Very Light
+        return "#A0C4FF"
     elif 2.5 <= val <= 7.5:
-        return "#7FB77E"  # Light
+        return "#7FB77E"
     elif 7.6 <= val <= 35.5:
-        return "#FFD700"  # Moderate
+        return "#FFD700"
     elif 35.6 <= val <= 64.4:
-        return "#FF8C00"  # Rather Heavy
+        return "#FF8C00"
     elif 64.5 <= val <= 124.4:
-        return "#FF4500"  # Heavy
+        return "#FF4500"
     elif 124.5 <= val <= 244.4:
-        return "#DC143C"  # Very Heavy
+        return "#DC143C"
     else:
-        return "#8B0000"  # Extremely Heavy
+        return "#8B0000"
 
 # ---------- MAIN ----------
 def main():
-    # ---------- FETCH & PREPARE DATA ----------
     data = fetch_weather_data(lat, lon)
     df = pd.DataFrame({
         "time": data["hourly"]["time"],
@@ -108,11 +102,10 @@ def main():
     df["date"] = df["time"].dt.date
     df["hour"] = df["time"].dt.hour
 
-    # ---------- SESSION STATE ----------
     if "expanded_day" not in st.session_state:
         st.session_state.expanded_day = None
 
-    # ---------- EXPANDED DAY VIEW ----------
+    # ---------- EXPANDED VIEW ----------
     if st.session_state.expanded_day:
         day = st.session_state.expanded_day
         st.markdown(f"## 🗓️ {day.strftime('%d').lstrip('0')} {day.strftime('%B')} {day.year} - Hourly Rainfall")
@@ -121,7 +114,7 @@ def main():
         for idx, row in day_df.iterrows():
             with subcols[idx % 6]:
                 st.markdown(
-                    f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:6px; margin-bottom:8px;'>"
+                    f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center;'>"
                     f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
                     unsafe_allow_html=True
                 )
@@ -129,11 +122,11 @@ def main():
             st.session_state.expanded_day = None
             st.stop()
 
-    # ---------- CALENDAR GRID VIEW ----------
-    st.markdown("### 🗓️ Calendar View")
-    rows = [df["date"].unique()[i:i + 7] for i in range(0, len(df["date"].unique()), 7)]
+    # ---------- CALENDAR GRID ----------
+    st.markdown("### 📆 Rainfall Forecast (Daily)")
+    weeks = [df["date"].unique()[i:i+7] for i in range(0, len(df["date"].unique()), 7)]
 
-    for week in rows:
+    for week in weeks:
         cols = st.columns(7)
         for i, day in enumerate(week):
             day_df = df[df["date"] == day]
@@ -141,14 +134,10 @@ def main():
             color = rain_color(total_rain)
 
             with cols[i]:
-                label_date = f"{day.strftime('%d')} {day.strftime('%B')}, {day.year}"
-                label_rain = f"Total🌧️{total_rain:.1f} mm"
-                label = f"{label_date}\n{label_rain}"
-
+                label = f"{day.strftime('%d')}<br>{day.strftime('%b')}<br>{total_rain:.1f} mm"
                 if st.button(label, key=f"day_{day}"):
                     st.session_state.expanded_day = day
                     st.stop()
-
                 st.markdown(
                     f"<div style='background-color:{color}; height:6px; border-radius:4px; margin-top:4px;'></div>",
                     unsafe_allow_html=True
@@ -156,9 +145,9 @@ def main():
 
     # ---------- LEGEND ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
-    legend_items = [
+    legend = [
         ("No Rain", "#D3D3D3"),
-        ("Trace Rain (0.01–0.04 mm)", "#ADD8E6"),
+        ("Trace (0.01–0.04 mm)", "#ADD8E6"),
         ("Very Light (0.1–2.4 mm)", "#A0C4FF"),
         ("Light (2.5–7.5 mm)", "#7FB77E"),
         ("Moderate (7.6–35.5 mm)", "#FFD700"),
@@ -168,16 +157,15 @@ def main():
         ("Extremely Heavy (>244.4 mm)", "#8B0000"),
     ]
 
-    legend_cols = st.columns(len(legend_items))
-    for i, (label, color) in enumerate(legend_items):
-        with legend_cols[i]:
+    col_l = st.columns(len(legend))
+    for i, (label, color) in enumerate(legend):
+        with col_l[i]:
             st.markdown(
-                f"<div style='background-color:{color}; padding:8px; border-radius:6px; text-align:center;'>"
-                f"<b style='font-size:12px'>{label}</b></div>",
+                f"<div style='background-color:{color}; padding:6px; border-radius:8px; text-align:center;'>"
+                f"<span style='font-size:11px'><b>{label}</b></span></div>",
                 unsafe_allow_html=True
             )
 
-
-# ---------- ENTRY POINT ----------
+# ---------- ENTRY ----------
 if __name__ == "__main__":
     main()
