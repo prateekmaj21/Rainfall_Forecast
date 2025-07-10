@@ -10,14 +10,14 @@ st.markdown("<h1 style='text-align: center;'>🌧️ 14-Day Rainfall Forecast Ca
 # ---------- USER GUIDE ----------
 with st.expander("ℹ️ How to Use This App", expanded=True):
     st.markdown("""
-<div style='background-color:#f9f9f9; padding:10px 20px; border-radius:10px;'>
-<b>Welcome!</b> This dashboard helps you monitor upcoming rainfall at your location.
+<div style='background-color:#f9f9f9; padding:10px 20px; border-radius:10px; font-size:15px;'>
+Welcome! This dashboard helps you monitor upcoming rainfall at your location.
 
-1. 📍 <b>Select a City</b> from the dropdown.
-2. 📅 <b>View Weekly Calendar</b> — total rainfall is shown per day.
-3. 🔍 <b>Click on any date</b> to view hourly breakdown.
-4. ⬅️ Use <b>Back</b> button to return to calendar view.
-5. 🌈 <b>Legend below</b> shows how rainfall is categorized.
+1. 📍 Select a city from the dropdown menu.
+2. 📅 Explore the 14-day rainfall calendar. Each box shows total rainfall.
+3. 🔍 Click a date to view hourly breakdown.
+4. ⬅️ Use the back button to return.
+5. 🌈 Rainfall intensity is color-coded — see legend below.
 </div>
 """, unsafe_allow_html=True)
 
@@ -50,17 +50,14 @@ default_places = {
     "Dhenkanal-2": (20.72582, 85.51291),
 }
 
-# ---------- CITY SELECTION UI ----------
-with st.container():
-    st.markdown("#### 📍 Select a City")
-    col1, col2 = st.columns([3, 7])
-    with col1:
-        selected_city = st.selectbox("", sorted(default_places.keys()), label_visibility="collapsed")
-    lat, lon = default_places[selected_city]
-    st.markdown(f"<div style='background-color:#e6f4f1; padding:10px 16px; border-radius:10px;'>"
-                f"<b>City Selected:</b> {selected_city} (Lat: {lat}, Lon: {lon})</div>", unsafe_allow_html=True)
+# ---------- CITY SELECTION ----------
+st.markdown("#### 📍 Select a City")
+selected_city = st.selectbox("", sorted(default_places.keys()), label_visibility="collapsed")
+lat, lon = default_places[selected_city]
+st.markdown(f"<div style='background-color:#e6f4f1; padding:10px 16px; border-radius:10px;'>"
+            f"City Selected: {selected_city} (Lat: {lat}, Lon: {lon})</div>", unsafe_allow_html=True)
 
-# ---------- FETCH DATA ----------
+# ---------- FETCH WEATHER ----------
 @st.cache_data(ttl=1800)
 def fetch_weather_data(lat, lon):
     url = (
@@ -115,33 +112,33 @@ def main():
             with subcols[idx % 6]:
                 st.markdown(
                     f"<div style='background-color:{rain_color(row['precipitation'])}; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center;'>"
-                    f"<b>{row['time'].strftime('%H:%M')}</b><br>🌧️ {row['precipitation']:.1f} mm</div>",
+                    f"{row['time'].strftime('%H:%M')}<br>🌧️ {row['precipitation']:.1f} mm</div>",
                     unsafe_allow_html=True
                 )
         if st.button("⬅️ Back to Calendar View"):
             st.session_state.expanded_day = None
-            st.stop()
 
     # ---------- CALENDAR GRID ----------
-    st.markdown("### 📆 Rainfall Forecast (Daily)")
-    weeks = [df["date"].unique()[i:i+7] for i in range(0, len(df["date"].unique()), 7)]
+    if not st.session_state.expanded_day:
+        st.markdown("### 📆 Rainfall Forecast (Daily)")
+        weeks = [df["date"].unique()[i:i+7] for i in range(0, len(df["date"].unique()), 7)]
 
-    for week in weeks:
-        cols = st.columns(7)
-        for i, day in enumerate(week):
-            day_df = df[df["date"] == day]
-            total_rain = day_df["precipitation"].sum()
-            color = rain_color(total_rain)
+        for week in weeks:
+            cols = st.columns(7)
+            for i, day in enumerate(week):
+                day_df = df[df["date"] == day]
+                total_rain = day_df["precipitation"].sum()
+                color = rain_color(total_rain)
 
-            with cols[i]:
-                label = f"{day.strftime('%d')}<br>{day.strftime('%b')}<br>{total_rain:.1f} mm"
-                if st.button(label, key=f"day_{day}"):
-                    st.session_state.expanded_day = day
-                    st.stop()
-                st.markdown(
-                    f"<div style='background-color:{color}; height:6px; border-radius:4px; margin-top:4px;'></div>",
-                    unsafe_allow_html=True
-                )
+                with cols[i]:
+                    label = f"{day.strftime('%d')}<br>{day.strftime('%b')}<br>{total_rain:.1f} mm"
+                    clicked = st.button(label, key=f"day_{day}")
+                    if clicked:
+                        st.session_state.expanded_day = pd.to_datetime(day)
+                    st.markdown(
+                        f"<div style='background-color:{color}; height:6px; border-radius:4px; margin-top:4px;'></div>",
+                        unsafe_allow_html=True
+                    )
 
     # ---------- LEGEND ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
@@ -162,7 +159,7 @@ def main():
         with col_l[i]:
             st.markdown(
                 f"<div style='background-color:{color}; padding:6px; border-radius:8px; text-align:center;'>"
-                f"<span style='font-size:11px'><b>{label}</b></span></div>",
+                f"<span style='font-size:11px'>{label}</span></div>",
                 unsafe_allow_html=True
             )
 
