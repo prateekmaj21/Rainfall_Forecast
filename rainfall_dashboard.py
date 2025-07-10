@@ -229,7 +229,7 @@ def main():
     st.markdown(legend_html, unsafe_allow_html=True)
 
     # ---------- PAST 7-DAY RAINFALL SECTION ----------
-    st.markdown("## ⏳ Past 7 Days Rainfall")
+    st.markdown("### Past 7 Days Rainfall")
     df_past = fetch_past_7_days_rainfall(lat, lon)
 
     if not df_past.empty:
