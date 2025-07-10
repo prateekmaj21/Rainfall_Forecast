@@ -229,14 +229,41 @@ def main():
     st.markdown(legend_html, unsafe_allow_html=True)
 
     # ---------- PAST 7-DAY RAINFALL SECTION ----------
-    st.markdown("### Past 7 Days Rainfall")
+    st.markdown("---")
+    st.markdown("## ⏳ Past 7 Days Rainfall")
+
     df_past = fetch_past_7_days_rainfall(lat, lon)
 
     if not df_past.empty:
-        st.dataframe(df_past, use_container_width=True)
-        st.markdown(f"📊 Total rainfall in past 7 days: **{df_past['Rainfall (mm)'].sum():.1f} mm**")
+        import altair as alt
+
+        total_7d = df_past["Rainfall (mm)"].sum()
+        max_day = df_past.loc[df_past["Rainfall (mm)"].idxmax()]
+        min_day = df_past.loc[df_past["Rainfall (mm)"].idxmin()]
+
+        st.markdown(f"**📊 Total Rainfall** in Past 7 Days: `{total_7d:.1f} mm`")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(f"🌧️ Wettest: {max_day['Date'].date()} — {max_day['Rainfall (mm)']:.1f} mm")
+        with col2:
+            st.info(f"🌤️ Driest: {min_day['Date'].date()} — {min_day['Rainfall (mm)']:.1f} mm")
+
+        chart = alt.Chart(df_past).mark_bar(size=35, cornerRadiusTop=4).encode(
+            x=alt.X("Date:T", title="Date"),
+            y=alt.Y("Rainfall (mm):Q", title="Rainfall (mm)"),
+            tooltip=["Date:T", "Rainfall (mm):Q"]
+        ).properties(
+            width="container",
+            height=300,
+            title="📉 Daily Rainfall Over Last 7 Days"
+        ).configure_title(fontSize=16).configure_axis(
+            labelFontSize=12,
+            titleFontSize=14
+        )
+
+        st.altair_chart(chart, use_container_width=True)
     else:
-        st.warning("Historical data could not be retrieved.")
+        st.warning("⚠️ Could not retrieve past 7 days rainfall data.")
 
 # ---------- ENTRY POINT ----------
 if __name__ == "__main__":
