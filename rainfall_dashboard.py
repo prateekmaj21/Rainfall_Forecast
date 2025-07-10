@@ -23,8 +23,6 @@ with st.expander("ℹ️ How to Use This App", expanded=True):
 ---
 
 This app is powered by real-time data from [Open-Meteo](https://open-meteo.com/) and updates every 30 minutes.
-
-Enjoy planning your week ahead! ☔
     """)
 
 # ---------- PREDEFINED LOCATIONS ----------
