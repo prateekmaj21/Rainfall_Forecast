@@ -233,7 +233,7 @@ def main():
     df_past = fetch_past_7_days_rainfall(lat, lon)
 
     if not df_past.empty:
-        st.dataframe(df_past.style.background_gradient(cmap="Blues", subset=["Rainfall (mm)"]), use_container_width=True)
+        st.dataframe(df_past, use_container_width=True)
         st.markdown(f"📊 Total rainfall in past 7 days: **{df_past['Rainfall (mm)'].sum():.1f} mm**")
     else:
         st.warning("Historical data could not be retrieved.")
