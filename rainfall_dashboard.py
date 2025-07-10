@@ -19,7 +19,6 @@ with st.expander("ℹ️ How to Use This App", expanded=True):
 3. **🔍 Click Any Day** to view the **hourly rainfall** breakdown with time and intensity.
 4. **⬅️ Go Back**: Use the "Back to Calendar View" button to return to the full calendar.
 5. **🌈 Rainfall Intensity Legend** at the bottom helps interpret rainfall levels.
-   - From *No Rain* to *Extremely Heavy Rain*, color-coded from grey to dark red.
 
 ---
 
@@ -197,43 +196,22 @@ def main():
                         unsafe_allow_html=True
                     )
 
-    # ---------- LEGEND ----------
+    # ---------- LEGEND SCALE ----------
     st.markdown("### 🌈 Rainfall Intensity Legend")
-    legend_items = [
-        ("No Rain                         .", "#D3D3D3", "black"),
-        ("Trace (0.01–0.04 mm)            .", "#ADD8E6", "black"),
-        ("Very Light (0.1–2.4 mm)         .", "#A0C4FF", "black"),
-        ("Light (2.5–7.5 mm)              .", "#7FB77E", "black"),
-        ("Moderate (7.6–35.5 mm)          .", "#FFD700", "black"),
-        ("Rather Heavy (35.6–64.4 mm)     .", "#FF8C00", "black"),
-        ("Heavy (64.5–124.4 mm)", "#FF4500.", "black"),
-        ("Very Heavy (124.5–244.4 mm)     .", "#DC143C", "black"),
-        ("Extreme (>244.4 mm)             .", "#8B0000", "white"),
-    ]
-
-    legend_cols = st.columns(len(legend_items))
-    for i, (label, bg_color, text_color) in enumerate(legend_items):
-        with legend_cols[i]:
-            st.markdown(
-                f"""
-                <div style='
-                    background-color:{bg_color};
-                    color:{text_color};
-                    padding:10px;
-                    border-radius:8px;
-                    text-align:center;
-                    font-size:13px;
-                    min-height:48px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-weight:600;
-                '>
-                    {label}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    legend_html = """
+    <div style="display: flex; width: 100%; max-width: 1000px; margin: auto; flex-wrap: wrap;">
+      <div style="flex: 1; background-color: #D3D3D3; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; border-radius: 6px 0 0 6px;">No Rain</div>
+      <div style="flex: 1; background-color: #ADD8E6; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Trace<br>(0.01–0.04)</div>
+      <div style="flex: 1; background-color: #A0C4FF; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Very Light<br>(0.1–2.4)</div>
+      <div style="flex: 1; background-color: #7FB77E; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Light<br>(2.5–7.5)</div>
+      <div style="flex: 1; background-color: #FFD700; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Moderate<br>(7.6–35.5)</div>
+      <div style="flex: 1; background-color: #FF8C00; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Rather Heavy<br>(35.6–64.4)</div>
+      <div style="flex: 1; background-color: #FF4500; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Heavy<br>(64.5–124.4)</div>
+      <div style="flex: 1; background-color: #DC143C; padding: 10px; text-align: center; font-size: 12px; font-weight: bold;">Very Heavy<br>(124.5–244.4)</div>
+      <div style="flex: 1; background-color: #8B0000; color: white; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; border-radius: 0 6px 6px 0;">Extreme<br>(>244.4)</div>
+    </div>
+    """
+    st.markdown(legend_html, unsafe_allow_html=True)
 
 # ---------- ENTRY POINT ----------
 if __name__ == "__main__":
