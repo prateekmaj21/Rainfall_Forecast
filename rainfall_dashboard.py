@@ -73,8 +73,8 @@ def fetch_weather_data(lat, lon):
 # ---------- FETCH PAST 7-DAY RAINFALL ----------
 @st.cache_data(ttl=3600)
 def fetch_past_7_days_rainfall(lat, lon):
-    end_date = datetime.now().date() - timedelta(days=1)
-    start_date = end_date - timedelta(days=6)
+    end_date = datetime.now().date() #- timedelta(days=1)
+    start_date = end_date - timedelta(days=7)
     url = (
         f"https://archive-api.open-meteo.com/v1/archive?"
         f"latitude={lat}&longitude={lon}&start_date={start_date}&end_date={end_date}"
