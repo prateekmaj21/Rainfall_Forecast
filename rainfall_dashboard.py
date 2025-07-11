@@ -72,9 +72,9 @@ def fetch_weather_data(lat, lon):
 
 # ---------- FETCH PAST 7-DAY RAINFALL ----------
 @st.cache_data(ttl=3600)
-def fetch_past_7_days_rainfall(lat, lon):
+def fetch_past_15_days_rainfall(lat, lon):
     end_date = datetime.now().date() #- timedelta(days=1)
-    start_date = end_date - timedelta(days=7)
+    start_date = end_date - timedelta(days=15)
     url = (
         f"https://archive-api.open-meteo.com/v1/archive?"
         f"latitude={lat}&longitude={lon}&start_date={start_date}&end_date={end_date}"
@@ -232,16 +232,16 @@ def main():
     st.markdown("---")
     st.markdown("## ⏳ Past 7 Days Rainfall")
 
-    df_past = fetch_past_7_days_rainfall(lat, lon)
+    df_past = fetch_past_15_days_rainfall(lat, lon)
 
     if not df_past.empty:
         import altair as alt
 
-        total_7d = df_past["Rainfall (mm)"].sum()
+        total_15d = df_past["Rainfall (mm)"].sum()
         max_day = df_past.loc[df_past["Rainfall (mm)"].idxmax()]
         min_day = df_past.loc[df_past["Rainfall (mm)"].idxmin()]
 
-        st.markdown(f"**📊 Total Rainfall** in Past 7 Days: `{total_7d:.1f} mm`")
+        st.markdown(f"**📊 Total Rainfall** in Past 15 Days: `{total_15d:.1f} mm`")
         col1, col2 = st.columns(2)
         with col1:
             st.success(f"🌧️ Wettest: {max_day['Date'].date()} — {max_day['Rainfall (mm)']:.1f} mm")
@@ -255,7 +255,7 @@ def main():
         ).properties(
             width="container",
             height=300,
-            title="📉 Daily Rainfall Over Last 7 Days"
+            title="📉 Daily Rainfall Over Last 15 Days"
         ).configure_title(fontSize=16).configure_axis(
             labelFontSize=12,
             titleFontSize=14
@@ -263,7 +263,7 @@ def main():
 
         st.altair_chart(chart, use_container_width=True)
     else:
-        st.warning("⚠️ Could not retrieve past 7 days rainfall data.")
+        st.warning("⚠️ Could not retrieve past 15 days rainfall data.")
 
 # ---------- ENTRY POINT ----------
 if __name__ == "__main__":
