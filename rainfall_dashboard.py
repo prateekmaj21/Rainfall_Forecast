@@ -228,9 +228,9 @@ def main():
     """
     st.markdown(legend_html, unsafe_allow_html=True)
 
-    # ---------- PAST 7-DAY RAINFALL SECTION ----------
+    # ---------- PAST 15-DAY RAINFALL SECTION ----------
     st.markdown("---")
-    st.markdown("## ⏳ Past 7 Days Rainfall")
+    st.markdown("## ⏳ Past 15 Days Rainfall")
 
     df_past = fetch_past_15_days_rainfall(lat, lon)
 
