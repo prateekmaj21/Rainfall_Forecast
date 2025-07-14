@@ -250,6 +250,13 @@ def main():
     else:
         st.warning("⚠️ Could not retrieve past 15 days rainfall data.")
 
+
+
+# ---------- ENTRY POINT ----------
+if __name__ == "__main__":
+    main()
+
+
 # ---------- USER GUIDE ----------
 with st.expander("ℹ️ How to Use This App", expanded=True):
     st.markdown("""
@@ -266,7 +273,3 @@ with st.expander("ℹ️ How to Use This App", expanded=True):
 ---
 This app is powered by real-time data from [Open-Meteo](https://open-meteo.com/) and updates every 30 minutes.
     """)
-
-# ---------- ENTRY POINT ----------
-if __name__ == "__main__":
-    main()
