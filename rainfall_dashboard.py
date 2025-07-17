@@ -50,7 +50,7 @@ st.markdown(f"### 📍 Forecast for: `{city_label}`")
 def fetch_weather_data(lat, lon):
     api_url = (
         f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-        f"&hourly=precipitation&forecast_days=14&timezone=auto"
+        f"&hourly=precipitation&forecast_days=14&timezone=auto&model=gefs"
     )
     response = requests.get(api_url, verify=False)
     return response.json()
