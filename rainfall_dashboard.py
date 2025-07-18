@@ -11,6 +11,7 @@ st.title("🌧️ 14-Day Rainfall Forecast Calendar")
 
 # ---------- PREDEFINED LOCATIONS ----------
 default_places = {
+    "Jamnagar BETC": (22.397826, 69.909285),
     "Vadodara": (22.3855, 73.1124),
     "Nagpur": (21.16596, 79.37988),
     "METC - Jhajjar": (28.52778, 76.81399),
