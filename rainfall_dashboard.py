@@ -53,8 +53,13 @@ def fetch_weather_data(lat, lon):
         f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
         f"&hourly=precipitation&forecast_days=14&timezone=auto&model=gefs"
     )
-    response = requests.get(api_url, verify=False)
-    return response.json()
+    try:
+        response = requests.get(api_url, verify=False)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        st.error(f"⚠️ Failed to fetch forecast data: {e}")
+        return {}
 
 # ---------- FETCH PAST 7-DAY RAINFALL ----------
 @st.cache_data(ttl=3600)
